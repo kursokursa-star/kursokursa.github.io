@@ -54,14 +54,45 @@ imageInput.addEventListener('change', (event) => {
     if (file) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            var base64Image = e.target.result;
-            localStorage.setItem("mobywatel_image", base64Image);
+            var img = new Image();
+            img.onload = function () {
+                var canvas = document.createElement("canvas");
+                var MAX_WIDTH = 600;
+                var MAX_HEIGHT = 800;
+                var width = img.width;
+                var height = img.height;
 
-            upload.classList.remove("error_shown");
-            upload.setAttribute("selected", "local");
-            upload.classList.add("upload_loaded");
-            upload.classList.remove("upload_loading");
-            upload.querySelector(".upload_uploaded").src = base64Image;
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                var base64Image = canvas.toDataURL("image/jpeg", 0.7);
+                try {
+                    localStorage.setItem("mobywatel_image", base64Image);
+                } catch (err) {
+                    console.error("Local storage full", err);
+                }
+
+                upload.classList.remove("error_shown");
+                upload.setAttribute("selected", "local");
+                upload.classList.add("upload_loaded");
+                upload.classList.remove("upload_loading");
+                upload.querySelector(".upload_uploaded").src = base64Image;
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     } else {
@@ -134,7 +165,7 @@ function isEmpty(value) {
 
 function forwardToId(params) {
 
-    location.href = "/id?" + params
+    location.href = "id.html?" + params
 
 }
 
